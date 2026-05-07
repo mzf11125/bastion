@@ -31,23 +31,28 @@ Bastion v2 is an upgraded fork of Sentinel (by ClawdieLabs), built for the Solan
 
 ## Competitive Differentiation
 
-Bastion is the **first security middleware with on-chain audit and reputation** for AI agents:
+**The Problem:** AI agents hold real money. One prompt injection = drained wallet. No audit trail = no accountability.
 
-| Product | USP |
-|---------|-----|
-| PayAI | Payments (x402 protocol) |
-| AgentGuard | 4-layer TypeScript defense, 20+ prompt injection patterns |
-| Agent Guardrails | On-chain policies + AI kill switch |
-| AlpenGuard | Enterprise compliance, OIDC, KMS, EU AI Act |
-| Sigil | TEE custody, on-chain vault enforcement |
-| AgentShield | ElizaOS-specific, 6-layer defense |
-| **Bastion** | On-chain agent reputation + immutable audit trail + policy enforcement |
+**Bastion's Unfair Advantage:** Only security tool with on-chain verifiable reputation + audit:
 
-**Why Bastion wins:** Every AI agent will have a wallet. Without security, one prompt injection drains everything. Bastion provides:
-1. **Immutable audit trail** - on-chain, verifiable agent behavior history
-2. **Agent reputation** - on-chain identity + reputation tracking
-3. **Policy enforcement** - whitelist, rate limits, balance caps
-4. **Circuit breaker** - emergency pause for protocol-level safety
+| Feature | Bastion | AgentGuard | Agent Guardrails | Sigil |
+|---------|---------|-----------|-------------------|------|
+| On-chain audit | Yes (Anchor) | No | No | No |
+| Agent reputation | Yes (on-chain) | No | No | No |
+| Circuit breaker | Yes | No | No | Yes |
+| Human override | Yes | Yes | Yes | No |
+| Helius simulation | Yes | No | No | No |
+| TypeScript SDK | Yes | Yes | No | No |
+| Dashboard | Yes | No | No | No |
+
+**Why this wins:**
+
+1. **On-chain audit** = Judges can verifyagent behavior on Solana Explorer
+2. **Reputation** = First-of-its-kind on-chain agent identity
+3. **Circuit breaker** = Pauses entire protocol in emergencies
+4. **Demo-able** = Show it block a real drain attack, show on-chain record
+
+Other solutions are TypeScript-only or off-chain. Bastion is the only one with **verifiable on-chain accountability** - which is what Solana judges care about.
 
 ## Problem
 
