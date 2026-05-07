@@ -3,8 +3,8 @@
 //! Verifies `NoErrorCheck`, `MaxUnitsCheck`, and `MaxBalanceDrainCheck` in
 //! isolation, covering boundary values and multiple-account scenarios.
 
-use sentinel::policy::{MaxBalanceDrainCheck, MaxUnitsCheck, NoErrorCheck, SimulationCheck};
-use sentinel::simulation::SimulationResult;
+use bastion::policy::{MaxBalanceDrainCheck, MaxUnitsCheck, NoErrorCheck, SimulationCheck};
+use bastion::simulation::SimulationResult;
 use std::collections::HashMap;
 
 fn clean_result() -> SimulationResult {

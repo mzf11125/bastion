@@ -1,26 +1,26 @@
 ---
-name: sentinelguard
+name: bastion
 description: "High-performance Rust firewall for AI Agents. Intercepts, simulates, and validates transactions before signing."
-homepage: "https://github.com/ClawdieLabs/sentinel"
+homepage: "https://github.com/mzf11125/bastion"
 metadata: {
   "category": "security",
   "emoji": "🛡️",
   "requires": {
-    "bins": ["sentinelguard"]
+    "bins": ["bastion"]
   }
 }
 ---
 
-# SentinelGuard 🛡️
+# Bastion 🛡️
 
-SentinelGuard is an autonomous security middleware that sits between an Agent's Brain and its Wallet.
+Bastion is an autonomous security middleware that sits between an Agent's Brain and its Wallet.
 
 ## Installation
 
 ```bash
 # Clone and build
-git clone https://github.com/ClawdieLabs/sentinel.git
-cd sentinel && cargo build --release
+git clone https://github.com/mzf11125/bastion.git
+cd bastion && cargo build --release
 ```
 
 ## Features
@@ -29,10 +29,12 @@ cd sentinel && cargo build --release
 - **Audit Logging**: Persistent history of all attempts via Sled DB.
 - **REST API**: Dynamically update policies and fetch logs.
 - **Human-in-the-loop**: Request manual approval for suspicious transactions.
+- **On-Chain Audit**: Anchor program for immutable audit records (v2).
+- **Agent Registry**: On-chain agent identity and reputation (v2).
 
 ## Usage for Agents
 
-Other Clawdbot agents should use SentinelGuard to verify every transaction before sending it to the network.
+Other AI agents should use Bastion to verify every transaction before sending it to the network.
 
 ### Verification Flow
 1. **Prepare Transaction**: Build your Solana transaction.
@@ -49,7 +51,7 @@ Example: `"intent": "Swapping 1 SOL for USDC on Jupiter"`
 
 ### Handling Blocks (Human Override)
 If a transaction is blocked with a `block_id`, ask the human:
-"SentinelGuard blocked this transaction: [Reason]. If you trust this, reply with 'allow [block_id]' or 'reject [block_id]'."
+"Bastion blocked this transaction: [Reason]. If you trust this, reply with 'allow [block_id]' or 'reject [block_id]'."
 
 Then call `POST /override` with:
 ```json
@@ -64,3 +66,5 @@ Then call `POST /override` with:
 - `GET /logs`: Fetch audit history.
 - `POST /policy`: Update allowed programs list.
 - `POST /override`: Human override for a blocked transaction.
+- `GET /health`: Server health check.
+- `GET /policy`: Get current policy settings.

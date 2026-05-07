@@ -24,7 +24,7 @@ use std::sync::Arc;
 use tempfile::TempDir;
 use tower::ServiceExt;
 
-use sentinel::{
+use bastion::{
     build_app,
     logger::{AuditEntry, AuditLogger, AuditResult, Decision},
     policy::Policy,

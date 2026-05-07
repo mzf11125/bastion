@@ -9,7 +9,7 @@ use solana_sdk::{
 };
 use std::str::FromStr;
 
-use sentinel::policy::{Policy, PolicyEngine};
+use bastion::policy::{Policy, PolicyEngine};
 
 fn dex_swap_program_id() -> Pubkey {
     Pubkey::from_str("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4").expect("valid pubkey")

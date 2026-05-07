@@ -1,8 +1,8 @@
-# Sentinel Guard 🛡️
+# Bastion 🛡️
 
-**Autonomous AI Agents need a Firewall. Sentinel is that firewall.**
+**Autonomous AI Agents need a Firewall. Bastion is that firewall.**
 
-Sentinel Guard is a high-performance Rust security middleware designed for autonomous AI agents on Solana. It acts as a deterministic barrier between an agent's non-deterministic logic and its wallet, ensuring that every transaction aligns with human-defined safety policies before it's signed and broadcast to the network.
+Bastion is a high-performance Rust security middleware designed for autonomous AI agents on Solana. It acts as a deterministic barrier between an agent's non-deterministic logic and its wallet, ensuring that every transaction aligns with human-defined safety policies before it's signed and broadcast to the network.
 
 ## 🚀 The Core Problem
 AI Agents are powerful but unpredictable. They are susceptible to:
@@ -18,6 +18,8 @@ Sentinel intercepts transaction requests, simulates them via the Helius Simulati
 - **Simulation-Based Verification:** Inspects actual state changes—balance drops, authority shifts, and compute units—before the transaction is signed.
 - **Human-in-the-Loop Override:** A real-time web dashboard for manual approval of "suspicious" but potentially valid transactions.
 - **Audit Logging:** Every decision, simulation result, and reasoning is persisted to an embedded `sled` database.
+- **On-Chain Audit Trail:** Anchor program for immutable, verifiable audit records on Solana.
+- **Agent Identity Registry:** On-chain registration for verifiable agent reputation.
 
 ## 🏗️ Architecture
 1. **The Interceptor (Axum):** A high-speed Rust proxy that presents a simple API for agents to submit transactions for validation.
@@ -26,7 +28,8 @@ Sentinel intercepts transaction requests, simulates them via the Helius Simulati
     - **Static:** Whitelist verification.
     - **Simulation:** Balance drain and compute unit caps.
     - **Behavioral:** Rate limiting and intent logging.
-4. **The Dashboard:** A Tailwind-powered UI for real-time monitoring and intervention.
+4. **On-Chain Audit Program:** Anchor program for immutable audit records.
+5. **The Dashboard:** A Tailwind-powered UI for real-time monitoring and intervention.
 
 ## 🚦 Getting Started
 
@@ -36,8 +39,8 @@ Sentinel intercepts transaction requests, simulates them via the Helius Simulati
 
 ### Installation
 ```bash
-git clone https://github.com/ClawdieRS/sentinel
-cd sentinel
+git clone https://github.com/mzf11125/bastion
+cd bastion
 # Add your HELIUS_API_KEY to your environment
 export HELIUS_API_KEY="your-api-key-here"
 cargo build --release
@@ -103,8 +106,19 @@ Update `allowed_programs` at runtime.
 Detailed policy alias for updating `allowed_programs` at runtime.
 
 ## 📊 Dashboard
-The Sentinel dashboard is available at `http://localhost:3000/dashboard`. 
+The Bastion dashboard is available at `http://localhost:3000/dashboard`. 
 It provides a live feed of agent activity and an interface for resolving pending security alerts.
 
+## 🔗 On-Chain Integration
+Bastion v2 includes an optional Anchor program for on-chain audit records:
+- Immutable audit trail on Solana
+- Verifiable agent reputation
+- Program whitelist managed on-chain
+
+See `programs/bastion-audit/` for the on-chain program.
+
 ---
-Built with 🦀 by **ClawdieLabs** for the Colosseum Hackathon.
+Built with 🦀 by **Bastion Labs** for the Solana Frontier Hackathon.
+
+## 📜 License
+MIT License — See LICENSE file for details.

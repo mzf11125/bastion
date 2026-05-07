@@ -1,4 +1,4 @@
-use sentinel::{
+use bastion::{
     audit::AuditLogger,
     build_app,
     policy::Policy,
