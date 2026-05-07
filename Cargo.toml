@@ -1,0 +1,26 @@
+[package]
+name = "sentinel"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = "0.7"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+solana-sdk = "1.18"
+solana-client = "1.18"
+anyhow = "1"
+thiserror = "1"
+reqwest = { version = "0.12", features = ["blocking", "json"] }
+base64 = "0.22"
+bincode = "1"
+dotenv = "0.15"
+sled = "0.34"
+uuid = { version = "1.20.0", features = ["v4"] }
+tower-http = { version = "0.5", features = ["fs"] }
+
+[dev-dependencies]
+tempfile = "3"
+tower = { version = "0.5", features = ["util"] }

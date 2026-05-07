@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel Guard 🛡️ | AI Firewall</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'JetBrains+Mono', monospace; background-color: #0a0a0a; color: #e0e0e0; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .pending-card { border-left: 4px solid #facc15; }
+        .allowed-tag { color: #4ade80; }
+        .blocked-tag { color: #f87171; }
+        .pending-tag { color: #facc15; }
+    </style>
+</head>
+<body class="p-8">
+    <header class="mb-12 flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold tracking-tighter text-white mb-2">SENTINEL GUARD <span class="text-blue-500">v0.1</span></h1>
+            <p class="text-gray-400">Security Middleware for Autonomous AI Agents</p>
+        </div>
+        <div class="text-right">
+            <div id="status-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-green-900/30 text-green-400 border border-green-500/50">
+                ● LIVE MONITORING
+            </div>
+        </div>
+    </header>
+
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Pending Approvals -->
+        <section class="lg:col-span-2">
+            <h2 class="text-xl font-bold mb-4 flex items-center">
+                <span class="mr-2">⏳</span> PENDING APPROVALS
+            </h2>
+            <div id="pending-container" class="space-y-4">
+                <!-- Pending cards will be injected here -->
+                <div class="p-6 glass rounded-xl text-gray-500 italic">No transactions awaiting approval.</div>
+            </div>
+        </section>
+
+        <!-- Audit Logs -->
+        <section>
+            <h2 class="text-xl font-bold mb-4 flex items-center">
+                <span class="mr-2">📜</span> RECENT ACTIVITY
+            </h2>
+            <div id="logs-container" class="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
+                <!-- Log entries will be injected here -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+        async function fetchPending() {
+            try {
+                const res = await fetch('/pending');
+                const data = await res.json();
+                renderPending(data);
+            } catch (e) { console.error("Failed to fetch pending", e); }
+        }
+
+        async function fetchLogs() {
+            try {
+                const res = await fetch('/logs');
+                const data = await res.json();
+                renderLogs(data.reverse());
+            } catch (e) { console.error("Failed to fetch logs", e); }
+        }
+
+        async function handleOverride(blockId, action) {
+            try {
+                const res = await fetch('/override', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ block_id: blockId, action: action })
+                });
+                if (res.ok) {
+                    fetchPending();
+                    fetchLogs();
+                } else {
+                    alert("Failed to process override");
+                }
+            } catch (e) { alert("Error: " + e); }
+        }
+
+        function renderPending(pendingMap) {
+            const container = document.getElementById('pending-container');
+            const entries = Object.entries(pendingMap);
+            
+            if (entries.length === 0) {
+                container.innerHTML = '<div class="p-6 glass rounded-xl text-gray-500 italic">No transactions awaiting approval.</div>';
+                return;
+            }
+
+            container.innerHTML = entries.map(([id, p]) => `
+                <div class="p-6 glass rounded-xl pending-card animate-pulse shadow-lg shadow-yellow-500/5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <span class="text-xs font-bold text-yellow-500 mb-1 block uppercase">Security Alert: Action Required</span>
+                            <h3 class="font-bold text-lg text-white">ID: ${id.slice(0,8)}...</h3>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-gray-500">Intent:</span>
+                            <p class="text-sm font-bold text-gray-300">${p.intent || 'Unknown'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-black/40 p-4 rounded-lg mb-6 border border-white/5">
+                        <h4 class="text-xs font-bold text-gray-500 mb-2 uppercase">Simulation Result</h4>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p class="text-gray-400">Compute Units:</p>
+                                <p class="font-bold">${p.simulation_result.units_consumed || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400">Balance Changes:</p>
+                                <ul class="text-xs">
+                                    ${Object.entries(p.simulation_result.balance_changes).map(([acc, bal]) => `
+                                        <li class="${bal < 0 ? 'text-red-400' : 'text-green-400'} font-mono">
+                                            ${acc.slice(0,4)}...${acc.slice(-4)}: ${bal > 0 ? '+' : ''}${bal} lamports
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="handleOverride('${id}', 'ALLOW')" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition-all active:scale-95">
+                            ALLOW TRANSACTION
+                        </button>
+                        <button onclick="handleOverride('${id}', 'REJECT')" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-lg transition-all active:scale-95">
+                            REJECT & BLOCK
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderLogs(logs) {
+            const container = document.getElementById('logs-container');
+            container.innerHTML = logs.map(entry => {
+                let decisionHtml = '';
+                if (typeof entry.decision === 'string') {
+                    decisionHtml = `<span class="allowed-tag font-bold">ALLOWED</span>`;
+                } else if (entry.decision.Blocked) {
+                    decisionHtml = `<span class="blocked-tag font-bold text-xs">BLOCKED: ${entry.decision.Blocked}</span>`;
+                } else if (entry.decision.PendingApproval) {
+                    decisionHtml = `<span class="pending-tag font-bold">PENDING</span>`;
+                }
+
+                return `
+                    <div class="p-4 glass rounded-lg text-xs border-l-2 ${typeof entry.decision === 'string' ? 'border-green-500' : 'border-red-500'}">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-gray-500">${new Date(entry.timestamp * 1000).toLocaleTimeString()}</span>
+                            ${decisionHtml}
+                        </div>
+                        <p class="text-gray-300 truncate font-mono">${entry.transaction_signature || 'No Signature'}</p>
+                        <p class="text-gray-500 mt-1 italic">${entry.intent || 'No intent'}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Initial load and polling
+        fetchPending();
+        fetchLogs();
+        setInterval(fetchPending, 3000);
+        setInterval(fetchLogs, 5000);
+    </script>
+</body>
+</html>

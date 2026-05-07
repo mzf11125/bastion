@@ -1,0 +1,5 @@
+max_sol_per_tx = 1
+rate_limit_per_minute = 120
+allowed_programs = []
+blocked_addresses = []
+simulation_checks_enabled = true
