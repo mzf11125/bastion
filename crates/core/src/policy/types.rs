@@ -16,9 +16,7 @@ pub enum PolicyRule {
         blocklist: Vec<Address>,
     },
     /// Limit transaction frequency.
-    Frequency {
-        max_transactions_per_hour: u32,
-    },
+    Frequency { max_transactions_per_hour: u32 },
     /// Require human approval for transactions above a threshold.
     HITL {
         trigger_above: u64,
@@ -30,9 +28,7 @@ pub enum PolicyRule {
         elevated_limit_multiplier: Option<f64>,
     },
     /// Restrict which transaction types are allowed.
-    TxTypeAllowlist {
-        allowed: Vec<String>,
-    },
+    TxTypeAllowlist { allowed: Vec<String> },
 }
 
 impl PolicyRule {

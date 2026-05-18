@@ -1,6 +1,13 @@
 {
   "version": "0.2.0",
   "name": "bastion_audit",
+  "address": "BaSZuLcwjfh75T3TjbVYpTH4qpJt1tNoZ3S6PTkvNhCb",
+  "metadata": {
+    "name": "bastion_audit",
+    "version": "0.2.0",
+    "spec": "0.1.0",
+    "description": "Bastion on-chain audit program"
+  },
   "instructions": [
     {
       "name": "initialize",
@@ -21,9 +28,9 @@
       ],
       "args": [
         { "name": "decision", "type": "u8" },
-        { "name": "simulationResult", "type": "array", "itemType": "u8", "length": 32 },
+        { "name": "simulationResult", "type": { "array": ["u8", 32] } },
         { "name": "reasoning", "type": "string" },
-        { "name": "programId", "type": "option", "itemType": "array", "itemType": "u8", "length": 32 }
+        { "name": "programId", "type": { "option": { "array": ["u8", 32] } } }
       ]
     },
     {
@@ -56,7 +63,7 @@
         { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
       "args": [
-        { "name": "allowedPrograms", "type": "array", "itemType": "array", "itemType": "u8", "length": 32 },
+        { "name": "allowedPrograms", "type": { "array": [{ "array": ["u8", 32] }] } },
         { "name": "maxSolPerTx", "type": "u64" },
         { "name": "rateLimitPerMinute", "type": "u32" }
       ]
@@ -104,9 +111,9 @@
           { "name": "authority", "type": "publicKey" },
           { "name": "timestamp", "type": "i64" },
           { "name": "decision", "type": "u8" },
-          { "name": "simulationResult", "type": "array", "itemType": "u8", "length": 32 },
+          { "name": "simulationResult", "type": { "array": ["u8", 32] } },
           { "name": "reasoning", "type": "string" },
-          { "name": "programId", "type": "option", "itemType": "array", "itemType": "u8", "length": 32 },
+          { "name": "programId", "type": { "option": { "array": ["u8", 32] } } },
           { "name": "bump", "type": "u8" }
         ]
       }
@@ -131,7 +138,7 @@
         "kind": "struct",
         "fields": [
           { "name": "authority", "type": "publicKey" },
-          { "name": "allowedPrograms", "type": "array", "itemType": "array", "itemType": "u8", "length": 32 },
+          { "name": "allowedPrograms", "type": { "array": [{ "array": ["u8", 32] }] } },
           { "name": "maxSolPerTx", "type": "u64" },
           { "name": "rateLimitPerMinute", "type": "u32" },
           { "name": "bump", "type": "u8" }

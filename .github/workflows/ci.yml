@@ -93,9 +93,6 @@ jobs:
   web:
     name: web (build)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/web
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -105,17 +102,13 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: apps/web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - run: pnpm --filter bastion-dashboard build
 
   # ── SDK ─────────────────────────────────────────────────────
   sdk:
     name: sdk (build)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/sdk
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -125,6 +118,5 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: packages/sdk/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - run: pnpm --filter @bastion/sdk build

@@ -38,14 +38,12 @@ impl OnChainClient {
         } else {
             let bytes = std::fs::read(&keypair_path)
                 .map_err(|e| anyhow!("Failed to read keypair file {keypair_path}: {e}"))?;
-            Keypair::from_bytes(&bytes)
-                .map_err(|e| anyhow!("Failed to parse keypair: {e}"))?
+            Keypair::from_bytes(&bytes).map_err(|e| anyhow!("Failed to parse keypair: {e}"))?
         };
 
         Ok(Self {
             authority: Arc::new(authority),
-            program_id: Pubkey::from_str(BASTION_PROGRAM_ID)
-                .expect("Invalid BASTION_PROGRAM_ID"),
+            program_id: Pubkey::from_str(BASTION_PROGRAM_ID).expect("Invalid BASTION_PROGRAM_ID"),
             rpc_url,
             http: Client::new(),
             enabled,
@@ -55,8 +53,7 @@ impl OnChainClient {
     pub fn disabled() -> Self {
         Self {
             authority: Arc::new(Keypair::new()),
-            program_id: Pubkey::from_str(BASTION_PROGRAM_ID)
-                .expect("Invalid BASTION_PROGRAM_ID"),
+            program_id: Pubkey::from_str(BASTION_PROGRAM_ID).expect("Invalid BASTION_PROGRAM_ID"),
             rpc_url: "http://localhost:8899".to_string(),
             http: Client::new(),
             enabled: false,
@@ -72,11 +69,7 @@ impl OnChainClient {
     }
 
     fn find_audit_entry_address(&self, total_audits: u64) -> Pubkey {
-        Pubkey::find_program_address(
-            &[AUDIT_SEED, &total_audits.to_le_bytes()],
-            &self.program_id,
-        )
-        .0
+        Pubkey::find_program_address(&[AUDIT_SEED, &total_audits.to_le_bytes()], &self.program_id).0
     }
 
     pub async fn log_audit(
@@ -94,10 +87,7 @@ impl OnChainClient {
         let signer = self.authority.pubkey();
         let system_program = solana_sdk::system_program::ID;
 
-        let total_audits = self
-            .get_audit_state_total(&audit_state)
-            .await
-            .unwrap_or(0);
+        let total_audits = self.get_audit_state_total(&audit_state).await.unwrap_or(0);
 
         let audit_entry = self.find_audit_entry_address(total_audits);
 
@@ -227,8 +217,8 @@ impl OnChainClient {
             blockhash,
         );
 
-        let tx_bytes = bincode::serialize(&tx)
-            .map_err(|e| anyhow!("Failed to serialize tx: {e}"))?;
+        let tx_bytes =
+            bincode::serialize(&tx).map_err(|e| anyhow!("Failed to serialize tx: {e}"))?;
         let tx_b64 = base64::engine::general_purpose::STANDARD.encode(tx_bytes);
 
         let body = serde_json::json!({
@@ -259,16 +249,20 @@ impl OnChainClient {
         let sig = resp.result.ok_or_else(|| {
             anyhow!(
                 "Transaction failed: {}",
-                resp.error.unwrap_or(RpcErrorMessage {
-                    message: "unknown error".to_string()
-                })
-                .message
+                resp.error
+                    .unwrap_or(RpcErrorMessage {
+                        message: "unknown error".to_string()
+                    })
+                    .message
             )
         })?;
 
         self.confirm_transaction(&sig).await?;
 
-        Ok(OnChainAuditResult { signature: sig, slot: 0 })
+        Ok(OnChainAuditResult {
+            signature: sig,
+            slot: 0,
+        })
     }
 
     async fn get_latest_blockhash(&self) -> Result<Hash> {
@@ -290,12 +284,9 @@ impl OnChainClient {
             .await
             .map_err(|e| anyhow!("Failed to parse blockhash: {e}"))?;
 
-        let result = resp
-            .result
-            .ok_or_else(|| anyhow!("No blockhash result"))?;
+        let result = resp.result.ok_or_else(|| anyhow!("No blockhash result"))?;
 
-        Hash::from_str(&result.value.blockhash)
-            .map_err(|e| anyhow!("Invalid blockhash: {e}"))
+        Hash::from_str(&result.value.blockhash).map_err(|e| anyhow!("Invalid blockhash: {e}"))
     }
 
     async fn confirm_transaction(&self, signature: &str) -> Result<()> {
@@ -318,14 +309,12 @@ impl OnChainClient {
                 .await
                 .map_err(|e| anyhow!("Failed to parse status: {e}"))?;
 
-            if let Some(result) = resp.result {
-                if let Some(Some(status)) = result.value.first() {
-                    if status.confirmation_status == "confirmed"
-                        || status.confirmation_status == "finalized"
-                    {
-                        return Ok(());
-                    }
-                }
+            if let Some(result) = resp.result
+                && let Some(Some(status)) = result.value.first()
+                && (status.confirmation_status == "confirmed"
+                    || status.confirmation_status == "finalized")
+            {
+                return Ok(());
             }
 
             tokio::time::sleep(std::time::Duration::from_millis(500)).await;

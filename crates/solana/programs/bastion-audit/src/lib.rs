@@ -72,20 +72,14 @@ pub mod bastion_audit {
         Ok(())
     }
 
-    pub fn update_agent_reputation(
-        ctx: Context<UpdateReputation>,
-        delta: i64,
-    ) -> Result<()> {
+    pub fn update_agent_reputation(ctx: Context<UpdateReputation>, delta: i64) -> Result<()> {
         let agent = &mut ctx.accounts.agent;
-        
+
         let new_score = agent.reputation_score as i64 + delta;
-        require!(
-            new_score >= 0,
-            BastionError::InvalidReputation
-        );
-        
+        require!(new_score >= 0, BastionError::InvalidReputation);
+
         agent.reputation_score = new_score as u64;
-        
+
         emit!(ReputationUpdated {
             agent: agent.key(),
             new_score: agent.reputation_score,
@@ -125,7 +119,7 @@ pub mod bastion_audit {
     pub fn emergency_resume(ctx: Context<EmergencyResume>) -> Result<()> {
         let audit_state = &mut ctx.accounts.audit_state;
         require!(audit_state.paused, BastionError::NotPaused);
-        
+
         audit_state.paused = false;
         audit_state.resumed_at = Clock::get()?.unix_timestamp;
 

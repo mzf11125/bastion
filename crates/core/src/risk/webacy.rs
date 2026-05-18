@@ -6,6 +6,7 @@ use crate::transaction::Address;
 /// Queries the Webacy API for address risk scores.
 /// This is the first concrete RiskOracle implementation.
 pub struct WebacyClient {
+    #[allow(dead_code)]
     api_key: String,
     base_url: String,
 }

@@ -5,8 +5,8 @@
 //! policy engine.
 
 use bastion_core::{
-    Chain, FirewallDecision, NormalizedTransaction, PolicyEvaluator,
-    PolicyRule, PolicySet, RiskOracle, TxType,
+    Chain, FirewallDecision, NormalizedTransaction, PolicyEvaluator, PolicyRule, PolicySet,
+    RiskOracle, TxType,
 };
 
 use serde::{Deserialize, Serialize};
@@ -82,7 +82,7 @@ pub fn default_policy_set() -> PolicySet {
     PolicySet::new()
         .with_rule(PolicyRule::AmountLimit {
             max_per_transaction: 10_000_000_000, // 10 SOL
-            max_per_24h: Some(100_000_000_000),   // 100 SOL per 24h
+            max_per_24h: Some(100_000_000_000),  // 100 SOL per 24h
             currency: "SOL".into(),
         })
         .with_rule(PolicyRule::HITL {
@@ -100,7 +100,10 @@ pub async fn evaluate_core(req: EvaluateRequest) -> EvaluateResponse {
 }
 
 /// Evaluate with a custom policy set (used for testing).
-pub async fn evaluate_core_with_policy(req: EvaluateRequest, policy: PolicySet) -> EvaluateResponse {
+pub async fn evaluate_core_with_policy(
+    req: EvaluateRequest,
+    policy: PolicySet,
+) -> EvaluateResponse {
     let tx = normalize_request(&req);
     let evaluator: PolicyEvaluator<NoopOracle> = PolicyEvaluator::new();
 

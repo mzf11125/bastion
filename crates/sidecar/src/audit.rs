@@ -173,22 +173,22 @@ impl AuditLogger {
             let entry: AuditEntry = serde_json::from_slice(&value)
                 .map_err(|e| anyhow!("Failed to deserialize audit entry: {}", e))?;
 
-            if let Some(transaction_id) = transaction_id {
-                if entry.transaction_id.as_deref() != Some(transaction_id) {
-                    continue;
-                }
+            if let Some(transaction_id) = transaction_id
+                && entry.transaction_id.as_deref() != Some(transaction_id)
+            {
+                continue;
             }
 
-            if let Some(signature) = signature {
-                if entry.transaction_signature.as_deref() != Some(signature) {
-                    continue;
-                }
+            if let Some(signature) = signature
+                && entry.transaction_signature.as_deref() != Some(signature)
+            {
+                continue;
             }
 
-            if let Some(result) = result {
-                if entry.result != result {
-                    continue;
-                }
+            if let Some(result) = result
+                && entry.result != result
+            {
+                continue;
             }
 
             logs.push(entry);
@@ -259,20 +259,20 @@ impl AuditLogger {
             let entry: AuditEntry = serde_json::from_slice(&value)
                 .map_err(|e| anyhow!("Failed to deserialize audit entry: {}", e))?;
 
-            if let Some(tid) = transaction_id {
-                if entry.transaction_id.as_deref() != Some(tid) {
-                    continue;
-                }
+            if let Some(tid) = transaction_id
+                && entry.transaction_id.as_deref() != Some(tid)
+            {
+                continue;
             }
-            if let Some(sig) = signature {
-                if entry.transaction_signature.as_deref() != Some(sig) {
-                    continue;
-                }
+            if let Some(sig) = signature
+                && entry.transaction_signature.as_deref() != Some(sig)
+            {
+                continue;
             }
-            if let Some(r) = result {
-                if entry.result != r {
-                    continue;
-                }
+            if let Some(r) = result
+                && entry.result != r
+            {
+                continue;
             }
             count += 1;
         }
@@ -370,13 +370,28 @@ mod tests {
         let logger = AuditLogger::new(db_path).expect("logger");
 
         logger
-            .log(make_entry(1, Some("tx-a"), Some("sig-a"), AuditResult::Allowed))
+            .log(make_entry(
+                1,
+                Some("tx-a"),
+                Some("sig-a"),
+                AuditResult::Allowed,
+            ))
             .expect("log");
         logger
-            .log(make_entry(2, Some("tx-b"), Some("sig-b"), AuditResult::Blocked))
+            .log(make_entry(
+                2,
+                Some("tx-b"),
+                Some("sig-b"),
+                AuditResult::Blocked,
+            ))
             .expect("log");
         logger
-            .log(make_entry(3, Some("tx-c"), Some("sig-c"), AuditResult::Allowed))
+            .log(make_entry(
+                3,
+                Some("tx-c"),
+                Some("sig-c"),
+                AuditResult::Allowed,
+            ))
             .expect("log");
 
         let by_tx = logger
@@ -395,7 +410,11 @@ mod tests {
             .get_logs_filtered(None, None, Some(AuditResult::Allowed), 0, 10)
             .expect("query allowed");
         assert_eq!(allowed.len(), 2);
-        assert!(allowed.iter().all(|entry| entry.result == AuditResult::Allowed));
+        assert!(
+            allowed
+                .iter()
+                .all(|entry| entry.result == AuditResult::Allowed)
+        );
         assert!(allowed[0].timestamp >= allowed[1].timestamp);
 
         let paginated = logger

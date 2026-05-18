@@ -179,7 +179,10 @@ fn build_test_app(
         blocked_addresses: vec![],
         simulation_checks_enabled: sim_checks,
     };
-    (build_app(policy, sim, logger, OnChainClient::disabled()), tmp)
+    (
+        build_app(policy, sim, logger, OnChainClient::disabled()),
+        tmp,
+    )
 }
 
 fn simulate_request(tx_b64: &str, intent: Option<&str>) -> Request<Body> {
@@ -332,10 +335,12 @@ async fn battery_jupiter_blocked_when_not_whitelisted() {
     assert_eq!(resp.status(), StatusCode::FORBIDDEN);
     let body = to_bytes(resp.into_body(), usize::MAX).await.unwrap();
     let payload: serde_json::Value = serde_json::from_slice(&body).unwrap();
-    assert!(payload["error"]
-        .as_str()
-        .unwrap()
-        .contains(&jupiter_v6().to_string()));
+    assert!(
+        payload["error"]
+            .as_str()
+            .unwrap()
+            .contains(&jupiter_v6().to_string())
+    );
 }
 
 #[tokio::test]
@@ -433,10 +438,12 @@ async fn simulation_error_produces_pending_approval_with_block_id() {
     let body = to_bytes(resp.into_body(), usize::MAX).await.unwrap();
     let payload: serde_json::Value = serde_json::from_slice(&body).unwrap();
     assert!(payload["block_id"].as_str().is_some());
-    assert!(payload["error"]
-        .as_str()
-        .unwrap()
-        .contains("Simulation error"));
+    assert!(
+        payload["error"]
+            .as_str()
+            .unwrap()
+            .contains("Simulation error")
+    );
 }
 
 #[tokio::test]
@@ -479,10 +486,7 @@ async fn drain_over_limit_produces_pending_approval() {
 
     let body = to_bytes(resp.into_body(), usize::MAX).await.unwrap();
     let payload: serde_json::Value = serde_json::from_slice(&body).unwrap();
-    assert!(payload["error"]
-        .as_str()
-        .unwrap()
-        .contains("balance drain"));
+    assert!(payload["error"].as_str().unwrap().contains("balance drain"));
 }
 
 #[tokio::test]
@@ -590,10 +594,7 @@ async fn override_reject_for_blocked_transfer() {
 
     let resp = app
         .clone()
-        .oneshot(simulate_request(
-            &encode_tx(&tx),
-            Some("huge transfer"),
-        ))
+        .oneshot(simulate_request(&encode_tx(&tx), Some("huge transfer")))
         .await
         .unwrap();
     assert_eq!(resp.status(), StatusCode::FORBIDDEN);
@@ -642,10 +643,7 @@ async fn audit_logs_contain_transaction_details_for_allowed_tx() {
 
     let resp = app
         .clone()
-        .oneshot(simulate_request(
-            &encode_tx(&tx),
-            Some("detail check"),
-        ))
+        .oneshot(simulate_request(&encode_tx(&tx), Some("detail check")))
         .await
         .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
@@ -664,9 +662,11 @@ async fn audit_logs_contain_transaction_details_for_allowed_tx() {
     assert!(details.request_payload_base64.is_some());
     assert!(!details.program_ids.is_empty());
     assert!(!details.account_keys.is_empty());
-    assert!(details
-        .program_ids
-        .contains(&system_program::id().to_string()));
+    assert!(
+        details
+            .program_ids
+            .contains(&system_program::id().to_string())
+    );
 }
 
 #[tokio::test]
@@ -739,10 +739,7 @@ async fn empty_allowlist_allows_any_program() {
     // Transfer
     let xfer_resp = app
         .clone()
-        .oneshot(simulate_request(
-            &encode_tx(&make_transfer_tx(1_000)),
-            None,
-        ))
+        .oneshot(simulate_request(&encode_tx(&make_transfer_tx(1_000)), None))
         .await
         .unwrap();
     assert_eq!(xfer_resp.status(), StatusCode::OK);
@@ -798,9 +795,6 @@ async fn dynamic_policy_update_unblocks_dex_swap() {
     assert_eq!(update.status(), StatusCode::OK);
 
     // Now allowed
-    let resp2 = app
-        .oneshot(simulate_request(&jup_tx, None))
-        .await
-        .unwrap();
+    let resp2 = app.oneshot(simulate_request(&jup_tx, None)).await.unwrap();
     assert_eq!(resp2.status(), StatusCode::OK);
 }

@@ -29,8 +29,7 @@ async fn main() {
             .unwrap_or_else(|_| "https://api.devnet.solana.com".to_string());
         let keypair_path = env::var("BASTION_KEYPAIR_PATH")
             .expect("BASTION_KEYPAIR_PATH required when BASTION_ON_CHAIN is set");
-        OnChainClient::new(rpc_url, keypair_path, true)
-            .expect("create on-chain client")
+        OnChainClient::new(rpc_url, keypair_path, true).expect("create on-chain client")
     } else {
         eprintln!("[bastion] On-chain audit logging disabled (set BASTION_ON_CHAIN to enable)");
         OnChainClient::disabled()

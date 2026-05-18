@@ -72,20 +72,22 @@ impl Policy {
 
             let program_str = program_id.to_string();
 
-            if program_str == "System1111111111111111111111111111111" {
-                if instruction.data.len() >= 4 {
-                    let instruction_type = instruction.data[0];
-                    if instruction_type == 2 || instruction_type == 3 {
-                        if instruction.data.len() >= 40 {
-                            let lamports = u64::from_le_bytes([
-                                instruction.data[8], instruction.data[9],
-                                instruction.data[10], instruction.data[11],
-                                instruction.data[12], instruction.data[13],
-                                instruction.data[14], instruction.data[15],
-                            ]);
-                            total_lamports += lamports;
-                        }
-                    }
+            if program_str == "System1111111111111111111111111111111" && instruction.data.len() >= 4
+            {
+                let instruction_type = instruction.data[0];
+                if (instruction_type == 2 || instruction_type == 3) && instruction.data.len() >= 40
+                {
+                    let lamports = u64::from_le_bytes([
+                        instruction.data[8],
+                        instruction.data[9],
+                        instruction.data[10],
+                        instruction.data[11],
+                        instruction.data[12],
+                        instruction.data[13],
+                        instruction.data[14],
+                        instruction.data[15],
+                    ]);
+                    total_lamports += lamports;
                 }
             }
         }
@@ -210,7 +212,7 @@ impl SimulationCheck for MaxBalanceDrainCheck {
     fn check(&self, result: &SimulationResult) -> Result<(), String> {
         for (account, change) in &result.balance_changes {
             if *change < 0 {
-                let drain = change.abs() as u64;
+                let drain = change.unsigned_abs();
                 if drain > self.limit {
                     return Err(format!(
                         "Account {} balance drain {} exceeds limit {}",
@@ -323,18 +325,18 @@ impl SimulationCheck for FlashLoanPatternCheck {
             }
         }
         for account in inflows.keys() {
-            if let Some(inflow) = inflows.get(account) {
-                if let Some(outflow) = outflows.get(account) {
-                    if *inflow >= 1_000_000_000_000 && *outflow >= 1_000_000_000_000 {
-                        let ratio = *outflow as f64 / *inflow as f64;
-                        if ratio >= 0.95 && ratio <= 1.05 {
-                            return Err(format!(
-                                "Blockint: flash-loan pattern detected on account {} \
-                                 (in={}, out={}, ratio={})",
-                                account, inflow, outflow, ratio
-                            ));
-                        }
-                    }
+            if let Some(inflow) = inflows.get(account)
+                && let Some(outflow) = outflows.get(account)
+                && *inflow >= 1_000_000_000_000
+                && *outflow >= 1_000_000_000_000
+            {
+                let ratio = *outflow as f64 / *inflow as f64;
+                if (0.95..=1.05).contains(&ratio) {
+                    return Err(format!(
+                        "Blockint: flash-loan pattern detected on account {} \
+                         (in={}, out={}, ratio={})",
+                        account, inflow, outflow, ratio
+                    ));
                 }
             }
         }
@@ -349,7 +351,7 @@ pub struct HighSlippageCheck {
 impl SimulationCheck for HighSlippageCheck {
     fn check(&self, result: &SimulationResult) -> Result<(), String> {
         let mut max_drain: u64 = 0;
-        for (_account, change) in &result.balance_changes {
+        for change in result.balance_changes.values() {
             if *change < 0 {
                 let drain = change.checked_neg().unwrap_or(0) as u64;
                 if drain > max_drain {

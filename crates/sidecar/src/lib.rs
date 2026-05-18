@@ -20,12 +20,12 @@ pub mod program_client;
 pub mod simulation;
 
 use audit::{
-    AuditEntry, AuditLogger, AuditResult, Decision, TransactionDetails,
-    current_timestamp, hash_transaction_payload,
+    AuditEntry, AuditLogger, AuditResult, Decision, TransactionDetails, current_timestamp,
+    hash_transaction_payload,
 };
 use policy::{
-    classify_intent, FlashLoanPatternCheck, HighSlippageCheck, IntentClassification,
-    MaxUnitsCheck, NoErrorCheck, Policy, PolicyEngine, SimulationCheck,
+    FlashLoanPatternCheck, HighSlippageCheck, IntentClassification, MaxUnitsCheck, NoErrorCheck,
+    Policy, PolicyEngine, SimulationCheck, classify_intent,
 };
 use program_client::OnChainClient;
 use simulation::{Simulate, SimulationResult};
@@ -356,10 +356,7 @@ async fn clear_audit_logs(State(state): State<AppState>) -> impl IntoResponse {
     }
 }
 
-async fn delete_audit_log(
-    State(state): State<AppState>,
-    Path(id): Path<u64>,
-) -> impl IntoResponse {
+async fn delete_audit_log(State(state): State<AppState>, Path(id): Path<u64>) -> impl IntoResponse {
     match state.logger.delete_by_id(id) {
         Ok(true) => Json(DeleteResponse { deleted: true }).into_response(),
         Ok(false) => (
@@ -465,7 +462,10 @@ async fn simulate(
             let _ = state.logger.log(entry);
             return (
                 StatusCode::FORBIDDEN,
-                Json(ErrorResponse { error: err, block_id: None }),
+                Json(ErrorResponse {
+                    error: err,
+                    block_id: None,
+                }),
             )
                 .into_response();
         }
@@ -474,7 +474,10 @@ async fn simulate(
     if let Some(ref intent_str) = intent {
         let classification = classify_intent(&Some(intent_str.clone()));
         if let IntentClassification::Malicious(pattern) = classification {
-            let err = format!("Intent classified as malicious: detected '{}' pattern", pattern);
+            let err = format!(
+                "Intent classified as malicious: detected '{}' pattern",
+                pattern
+            );
             let entry = AuditEntry {
                 ..build_audit_entry(
                     signature.clone(),
@@ -489,7 +492,10 @@ async fn simulate(
             let _ = state.logger.log(entry);
             return (
                 StatusCode::FORBIDDEN,
-                Json(ErrorResponse { error: err, block_id: None }),
+                Json(ErrorResponse {
+                    error: err,
+                    block_id: None,
+                }),
             )
                 .into_response();
         }
@@ -672,7 +678,10 @@ async fn simulate(
         let sim_hash: [u8; 32] = result.simulation_hash.unwrap_or([0u8; 32]);
         let reasoning = "All policy and simulation checks passed".to_string();
         tokio::spawn(async move {
-            if let Err(e) = on_chain.log_audit(decision, sim_hash, &reasoning, None).await {
+            if let Err(e) = on_chain
+                .log_audit(decision, sim_hash, &reasoning, None)
+                .await
+            {
                 eprintln!("[bastion] On-chain audit log failed: {e}");
             } else {
                 eprintln!("[bastion] On-chain audit logged successfully");
@@ -698,23 +707,23 @@ async fn get_logs(
     let offset = offset.unwrap_or(0);
     let limit = limit.unwrap_or(100);
 
-    let total = match state.logger.count_filtered(
-        transaction_id.as_deref(),
-        signature.as_deref(),
-        result,
-    ) {
-        Ok(t) => t,
-        Err(err) => {
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ErrorResponse {
-                    error: format!("Failed to count logs: {err}"),
-                    block_id: None,
-                }),
-            )
-                .into_response();
-        }
-    };
+    let total =
+        match state
+            .logger
+            .count_filtered(transaction_id.as_deref(), signature.as_deref(), result)
+        {
+            Ok(t) => t,
+            Err(err) => {
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ErrorResponse {
+                        error: format!("Failed to count logs: {err}"),
+                        block_id: None,
+                    }),
+                )
+                    .into_response();
+            }
+        };
 
     match state.logger.get_logs_filtered(
         transaction_id.as_deref(),
@@ -854,7 +863,11 @@ struct CircuitBreakerStatus {
 }
 
 async fn get_circuit_breaker_status(State(state): State<AppState>) -> Json<CircuitBreakerStatus> {
-    let engaged = state.policy_engine.read().await.is_circuit_breaker_engaged();
+    let engaged = state
+        .policy_engine
+        .read()
+        .await
+        .is_circuit_breaker_engaged();
     Json(CircuitBreakerStatus { engaged })
 }
 
@@ -872,7 +885,11 @@ async fn engage_circuit_breaker(State(state): State<AppState>) -> Json<CircuitBr
 }
 
 async fn disengage_circuit_breaker(State(state): State<AppState>) -> Json<CircuitBreakerStatus> {
-    state.policy_engine.write().await.disengage_circuit_breaker();
+    state
+        .policy_engine
+        .write()
+        .await
+        .disengage_circuit_breaker();
     if state.on_chain.is_enabled() {
         let on_chain = state.on_chain.clone();
         tokio::spawn(async move {
@@ -938,12 +955,18 @@ pub fn build_app(
             "/policy/allowed-programs",
             post(update_policy).put(update_policy),
         )
-        .route("/policy/full", post(update_full_policy).put(update_full_policy))
+        .route(
+            "/policy/full",
+            post(update_full_policy).put(update_full_policy),
+        )
         .route("/policy/export", get(export_policy_toml))
         // Circuit breaker
         .route("/circuit-breaker/status", get(get_circuit_breaker_status))
         .route("/circuit-breaker/engage", post(engage_circuit_breaker))
-        .route("/circuit-breaker/disengage", post(disengage_circuit_breaker))
+        .route(
+            "/circuit-breaker/disengage",
+            post(disengage_circuit_breaker),
+        )
         // Static dashboard
         .nest_service("/dashboard", ServeDir::new("static"))
         .with_state(app_state)

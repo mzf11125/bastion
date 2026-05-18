@@ -1,9 +1,9 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Provider, Program, BN } from "@coral-xyz/anchor";
 import { Connection, PublicKey, Signer, Transaction } from "@solana/web3.js";
+import idl from "./idl.json";
 
 export const BASTION_PROGRAM_ID = new PublicKey(
-  "BaSZuLcwjfh75T3TjbVYpTH4qpJt1tNoZ3S6PTkvNhCb"
+  idl.address
 );
 
 export const AUDIT_SEED = "bastion_audit";
@@ -13,24 +13,22 @@ export const POLICY_SEED = "bastion_policy";
 export interface BastionConfig {
   connection: Connection;
   provider?: anchor.Provider;
-  programId?: PublicKey;
 }
 
 export class BastionClient {
-  private program: Program;
+  private program: any;
   private connection: Connection;
 
   constructor(config: BastionConfig) {
     this.connection = config.connection;
-    
+
     const provider = config.provider ?? new anchor.AnchorProvider(
       config.connection,
       anchor.Wallet.local(),
       anchor.AnchorProvider.defaultOptions()
     );
-    
-    const idl = require("./idl.json");
-    this.program = new Program(idl, config.programId ?? BASTION_PROGRAM_ID, provider);
+
+    this.program = new anchor.Program(idl as any, provider);
   }
 
   async initialize(authority: Signer): Promise<Transaction> {
@@ -236,4 +234,3 @@ export class BastionClient {
 }
 
 export * from "./types";
-export { BASTION_PROGRAM_ID, AUDIT_SEED, AGENT_SEED, POLICY_SEED };

@@ -117,10 +117,7 @@ impl<O: RiskOracle> PolicyEvaluator<O> {
 
         if let Some(limit_24h) = max_per_24h {
             let mut state = self.rate_state.lock().unwrap();
-            let total = state
-                .volume_24h
-                .entry(currency.to_string())
-                .or_insert(0);
+            let total = state.volume_24h.entry(currency.to_string()).or_insert(0);
             *total += tx.amount;
 
             if *total > limit_24h {
@@ -162,11 +159,7 @@ impl<O: RiskOracle> PolicyEvaluator<O> {
         FirewallDecision::Pass
     }
 
-    fn check_frequency(
-        &self,
-        _tx: &NormalizedTransaction,
-        max_per_hour: u32,
-    ) -> FirewallDecision {
+    fn check_frequency(&self, _tx: &NormalizedTransaction, max_per_hour: u32) -> FirewallDecision {
         let mut state = self.rate_state.lock().unwrap();
         let now = Instant::now();
         let window = Duration::from_secs(3600);
@@ -236,11 +229,7 @@ impl<O: RiskOracle> PolicyEvaluator<O> {
         }
     }
 
-    fn check_tx_type(
-        &self,
-        tx: &NormalizedTransaction,
-        allowed: &[String],
-    ) -> FirewallDecision {
+    fn check_tx_type(&self, tx: &NormalizedTransaction, allowed: &[String]) -> FirewallDecision {
         let type_str = match tx.tx_type {
             TxType::Transfer => "transfer",
             TxType::Payment => "payment",
@@ -276,10 +265,15 @@ mod tests {
     struct NoopOracle;
     #[async_trait::async_trait]
     impl RiskOracle for NoopOracle {
-        async fn score(&self, _address: &Address) -> Result<crate::risk::RiskScore, crate::risk::RiskOracleError> {
+        async fn score(
+            &self,
+            _address: &Address,
+        ) -> Result<crate::risk::RiskScore, crate::risk::RiskOracleError> {
             Ok(crate::risk::RiskScore::new(0))
         }
-        fn provider_name(&self) -> &str { "noop" }
+        fn provider_name(&self) -> &str {
+            "noop"
+        }
     }
 
     fn make_tx(amount: u64, to: &str, tx_type: TxType) -> NormalizedTransaction {
@@ -299,7 +293,10 @@ mod tests {
         let evaluator = PolicyEvaluator::<NoopOracle>::new();
         let tx = make_tx(100, "good-addr", TxType::Transfer);
         let policy = PolicySet::new();
-        assert_eq!(evaluator.evaluate(&tx, &policy).await, FirewallDecision::Pass);
+        assert_eq!(
+            evaluator.evaluate(&tx, &policy).await,
+            FirewallDecision::Pass
+        );
     }
 
     #[tokio::test]
@@ -324,7 +321,10 @@ mod tests {
             max_per_24h: None,
             currency: "SOL".into(),
         });
-        assert_eq!(evaluator.evaluate(&tx, &policy).await, FirewallDecision::Pass);
+        assert_eq!(
+            evaluator.evaluate(&tx, &policy).await,
+            FirewallDecision::Pass
+        );
     }
 
     #[tokio::test]
@@ -347,7 +347,10 @@ mod tests {
             allowlist: vec![Address::new("good-addr")],
             blocklist: vec![],
         });
-        assert_eq!(evaluator.evaluate(&tx, &policy).await, FirewallDecision::Pass);
+        assert_eq!(
+            evaluator.evaluate(&tx, &policy).await,
+            FirewallDecision::Pass
+        );
     }
 
     #[tokio::test]
@@ -382,7 +385,10 @@ mod tests {
             trigger_above: 50_000,
             timeout_seconds: 3600,
         });
-        assert_eq!(evaluator.evaluate(&tx, &policy).await, FirewallDecision::Pass);
+        assert_eq!(
+            evaluator.evaluate(&tx, &policy).await,
+            FirewallDecision::Pass
+        );
     }
 
     #[tokio::test]
@@ -403,6 +409,9 @@ mod tests {
         let policy = PolicySet::new().with_rule(PolicyRule::TxTypeAllowlist {
             allowed: vec!["payment".into()],
         });
-        assert_eq!(evaluator.evaluate(&tx, &policy).await, FirewallDecision::Pass);
+        assert_eq!(
+            evaluator.evaluate(&tx, &policy).await,
+            FirewallDecision::Pass
+        );
     }
 }

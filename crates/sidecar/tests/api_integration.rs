@@ -131,7 +131,10 @@ fn test_app_with_result_and_policy(
         result: simulation_result,
     });
 
-    (build_app(policy, simulator, logger, OnChainClient::disabled()), tmp_dir)
+    (
+        build_app(policy, simulator, logger, OnChainClient::disabled()),
+        tmp_dir,
+    )
 }
 
 fn test_app_with_result(
@@ -482,7 +485,8 @@ async fn simulate_logs_allowed_and_blocked_transactions() {
                 == Some(42_000)
     }));
     assert!(
-        logs.entries.iter()
+        logs.entries
+            .iter()
             .any(|entry| matches!(entry.decision, Decision::Blocked(_)))
     );
 }
@@ -524,7 +528,8 @@ async fn simulate_bypasses_simulation_checks_when_disabled() {
         .expect("body");
     let logs: PaginatedTestResponse = serde_json::from_slice(&logs_body).expect("logs");
     assert!(
-        logs.entries.iter()
+        logs.entries
+            .iter()
             .any(|entry| matches!(entry.decision, Decision::Allowed))
     );
 }
@@ -699,7 +704,8 @@ async fn simulate_logs_intent_field() {
     let logs: PaginatedTestResponse = serde_json::from_slice(&body).expect("logs");
 
     assert!(
-        logs.entries.iter()
+        logs.entries
+            .iter()
             .any(|entry| entry.intent.as_ref() == Some(&intent))
     );
 }
@@ -902,7 +908,8 @@ async fn override_workflow_allows_blocked_transaction() {
 
     // We expect both the Pending and the Allowed entry
     assert!(
-        logs.entries.iter()
+        logs.entries
+            .iter()
             .any(|entry| matches!(entry.decision, Decision::Allowed))
     );
 }
@@ -1017,7 +1024,8 @@ async fn logs_endpoint_supports_result_filter_and_limit() {
     let logs: PaginatedTestResponse = serde_json::from_slice(&body).expect("logs");
     assert_eq!(logs.entries.len(), 1);
     assert!(
-        logs.entries.iter()
+        logs.entries
+            .iter()
             .all(|entry| matches!(entry.decision, Decision::Allowed))
     );
 }
@@ -1137,7 +1145,8 @@ async fn audit_logs_alias_endpoints_find_entries_by_transaction_id_and_signature
         serde_json::from_slice(&filtered_logs_body).expect("logs");
     assert_eq!(filtered_logs.entries.len(), 1);
     assert!(
-        filtered_logs.entries
+        filtered_logs
+            .entries
             .iter()
             .all(|entry| matches!(entry.decision, Decision::Allowed))
     );

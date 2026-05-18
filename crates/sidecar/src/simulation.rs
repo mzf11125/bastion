@@ -263,10 +263,10 @@ impl HeliusSimulator {
         let mut balances = HashMap::new();
         if let Some(result) = rpc_resp.result {
             for (i, account) in result.value.into_iter().enumerate() {
-                if let Some(Some(account)) = Some(account) {
-                    if i < addresses.len() {
-                        balances.insert(addresses[i].clone(), account.lamports as i64);
-                    }
+                if let Some(Some(account)) = Some(account)
+                    && i < addresses.len()
+                {
+                    balances.insert(addresses[i].clone(), account.lamports as i64);
                 }
             }
         }
