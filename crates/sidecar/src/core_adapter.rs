@@ -5,9 +5,10 @@
 //! policy engine.
 
 use bastion_core::{
-    Chain, FirewallDecision, NormalizedTransaction, PolicyEvaluator, PolicyRule, PolicySet,
-    RiskOracle, TxType,
+    Chain, FirewallDecision, NormalizedTransaction, PolicyEvaluator, PolicyRule, PolicySet, TxType,
 };
+
+use crate::grond_oracle::GrondOracle;
 
 use serde::{Deserialize, Serialize};
 
@@ -33,21 +34,6 @@ pub struct EvaluateResponse {
     pub approval_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub policy_id: Option<String>,
-}
-
-/// A no-op risk oracle used when no oracle provider is configured.
-struct NoopOracle;
-#[async_trait::async_trait]
-impl RiskOracle for NoopOracle {
-    async fn score(
-        &self,
-        _address: &bastion_core::Address,
-    ) -> Result<bastion_core::RiskScore, bastion_core::RiskOracleError> {
-        Ok(bastion_core::RiskScore::new(0))
-    }
-    fn provider_name(&self) -> &str {
-        "noop"
-    }
 }
 
 /// Convert an EvaluateRequest into a NormalizedTransaction.
@@ -95,17 +81,27 @@ pub fn default_policy_set() -> PolicySet {
 }
 
 /// Evaluate a transaction using the core policy engine.
-pub async fn evaluate_core(req: EvaluateRequest) -> EvaluateResponse {
-    evaluate_core_with_policy(req, default_policy_set()).await
+///
+/// When `grond` is `Some`, the evaluator uses GrondOSINT as its risk oracle.
+pub async fn evaluate_core(
+    req: EvaluateRequest,
+    grond: Option<GrondOracle>,
+) -> EvaluateResponse {
+    evaluate_core_with_policy(req, default_policy_set(), grond).await
 }
 
 /// Evaluate with a custom policy set (used for testing).
 pub async fn evaluate_core_with_policy(
     req: EvaluateRequest,
     policy: PolicySet,
+    grond: Option<GrondOracle>,
 ) -> EvaluateResponse {
     let tx = normalize_request(&req);
-    let evaluator: PolicyEvaluator<NoopOracle> = PolicyEvaluator::new();
+    let evaluator = if let Some(oracle) = grond {
+        PolicyEvaluator::with_oracle(oracle)
+    } else {
+        PolicyEvaluator::new()
+    };
 
     let decision = evaluator.evaluate(&tx, &policy).await;
 
@@ -149,7 +145,7 @@ mod tests {
             tx_type: Some("transfer".into()),
             chain: Some("solana".into()),
         };
-        let resp = evaluate_core(req).await;
+        let resp = evaluate_core(req, None).await;
         assert_eq!(resp.status, "passed");
     }
 
@@ -164,7 +160,7 @@ mod tests {
             tx_type: Some("transfer".into()),
             chain: Some("solana".into()),
         };
-        let resp = evaluate_core(req).await;
+        let resp = evaluate_core(req, None).await;
         assert_eq!(resp.status, "blocked");
     }
 
@@ -189,7 +185,7 @@ mod tests {
             tx_type: Some("transfer".into()),
             chain: Some("solana".into()),
         };
-        let resp = evaluate_core_with_policy(req, policy).await;
+        let resp = evaluate_core_with_policy(req, policy, None).await;
         assert_eq!(resp.status, "pending_hitl");
         assert!(resp.approval_id.is_some());
     }
@@ -205,7 +201,7 @@ mod tests {
             tx_type: Some("governance".into()), // not in allowlist
             chain: Some("solana".into()),
         };
-        let resp = evaluate_core(req).await;
+        let resp = evaluate_core(req, None).await;
         assert_eq!(resp.status, "blocked");
     }
 

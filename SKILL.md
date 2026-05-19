@@ -31,6 +31,7 @@ cd bastion && cargo build --release
 - **Human-in-the-loop**: Request manual approval for suspicious transactions.
 - **On-Chain Audit**: Anchor program for immutable audit records (v2).
 - **Agent Registry**: On-chain agent identity and reputation (v2).
+- **GrondOSINT Oracle**: Address risk scoring via Grond's agentic OSINT pipeline (Tavily, Shodan, Twitter).
 
 ## Usage for Agents
 

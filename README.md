@@ -86,8 +86,9 @@ Bastion consists of five main components:
 1. **Interceptor (Axum)**: Rust HTTP proxy for transaction validation
 2. **Simulation Core**: Helius API integration for outcome prediction
 3. **Policy Engine**: Static (whitelist), Simulation (balance check), Behavioral (rate limit)
-4. **On-Chain Audit Program**: Anchor program for immutable records
-5. **Dashboard**: React+Vite UI for monitoring and policy management
+4. **GrondOSINT Oracle**: Address risk scoring powered by Grond's agentic OSINT pipeline (Tavily, Shodan, Twitter)
+5. **On-Chain Audit Program**: Anchor program for immutable records
+6. **Dashboard**: React+Vite UI for monitoring and policy management
 
 ## Quick Start
 
@@ -324,6 +325,10 @@ await client.emergencyPause(wallet);
 2. Create a feature branch
 3. Make your changes
 4. Submit a pull request
+
+## Acknowledgments
+
+- **Grond** ([github.com/daemon-blockint-tech/Grond](https://github.com/daemon-blockint-tech/grond)) — Agentic OSINT platform that powers Bastion's address risk oracle. Thank you to the Grond team for building the intelligence pipeline that feeds Bastion's blockint rules with real-world threat data.
 
 ## License
 

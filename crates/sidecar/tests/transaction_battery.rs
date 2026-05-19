@@ -26,6 +26,7 @@ use tower::ServiceExt;
 
 use bastion_sidecar::{
     build_app,
+    grond_oracle::GrondOracle,
     logger::{AuditEntry, AuditLogger, AuditResult, Decision},
     policy::Policy,
     program_client::OnChainClient,
@@ -180,7 +181,7 @@ fn build_test_app(
         simulation_checks_enabled: sim_checks,
     };
     (
-        build_app(policy, sim, logger, OnChainClient::disabled()),
+        build_app(policy, sim, logger, OnChainClient::disabled(), GrondOracle::disabled()),
         tmp,
     )
 }

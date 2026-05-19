@@ -14,6 +14,7 @@ use uuid::Uuid;
 
 pub mod audit;
 pub mod core_adapter;
+pub mod grond_oracle;
 pub mod logger;
 pub mod policy;
 pub mod program_client;
@@ -23,6 +24,7 @@ use audit::{
     AuditEntry, AuditLogger, AuditResult, Decision, TransactionDetails, current_timestamp,
     hash_transaction_payload,
 };
+use grond_oracle::GrondOracle;
 use policy::{
     FlashLoanPatternCheck, HighSlippageCheck, IntentClassification, MaxUnitsCheck, NoErrorCheck,
     Policy, PolicyEngine, SimulationCheck, classify_intent,
@@ -56,6 +58,7 @@ struct AppState {
     logger: Arc<AuditLogger>,
     on_chain: Arc<OnChainClient>,
     pending_approvals: Arc<RwLock<HashMap<String, PendingApproval>>>,
+    grond_oracle: GrondOracle,
     started_at: std::time::Instant,
 }
 
@@ -902,9 +905,15 @@ async fn disengage_circuit_breaker(State(state): State<AppState>) -> Json<Circui
 }
 
 async fn evaluate_v2(
+    State(state): State<AppState>,
     Json(req): Json<core_adapter::EvaluateRequest>,
 ) -> Json<core_adapter::EvaluateResponse> {
-    Json(core_adapter::evaluate_core(req).await)
+    let grond = if state.grond_oracle.is_enabled() {
+        Some(state.grond_oracle.clone())
+    } else {
+        None
+    };
+    Json(core_adapter::evaluate_core(req, grond).await)
 }
 
 pub fn build_app(
@@ -912,6 +921,7 @@ pub fn build_app(
     simulator: Arc<dyn Simulate + Send + Sync>,
     logger: Arc<AuditLogger>,
     on_chain: OnChainClient,
+    grond_oracle: GrondOracle,
 ) -> Router {
     let app_state = AppState {
         policy_engine: Arc::new(RwLock::new(PolicyEngine::new(policy))),
@@ -919,6 +929,7 @@ pub fn build_app(
         logger,
         on_chain: Arc::new(on_chain),
         pending_approvals: Arc::new(RwLock::new(HashMap::new())),
+        grond_oracle,
         started_at: std::time::Instant::now(),
     };
 

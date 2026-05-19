@@ -1,6 +1,7 @@
 use bastion_sidecar::{
     audit::AuditLogger,
     build_app,
+    grond_oracle::GrondOracle,
     policy::Policy,
     program_client::OnChainClient,
     simulation::{HeliusSimulator, Simulate},
@@ -35,7 +36,18 @@ async fn main() {
         OnChainClient::disabled()
     };
 
-    let app = build_app(policy, simulator, logger, on_chain);
+    let grond_oracle = match env::var("GROND_API_URL") {
+        Ok(url) if !url.is_empty() => {
+            eprintln!("[bastion] GrondOSINT oracle enabled: {url}");
+            GrondOracle::new(url, reqwest::Client::new())
+        }
+        _ => {
+            eprintln!("[bastion] GrondOSINT oracle disabled (set GROND_API_URL to enable)");
+            GrondOracle::disabled()
+        }
+    };
+
+    let app = build_app(policy, simulator, logger, on_chain, grond_oracle);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
